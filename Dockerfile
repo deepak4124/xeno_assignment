@@ -14,7 +14,8 @@ COPY apps/backend/package.json apps/backend/
 RUN npm install
 
 # Install NATS Server (Embedded for single-container deployment)
-RUN apk add --no-cache nats-server
+# Also install OpenSSL 1.1 compatibility for Prisma
+RUN apk add --no-cache nats-server openssl
 
 # Copy backend source code
 COPY apps/backend apps/backend
