@@ -13,7 +13,7 @@ export default function SyncController() {
     setIsSyncing(true);
     try {
       // Hardcoded shopDomain for demo purposes, in a real app this would come from context/auth
-      await api.post('/sync', { shopDomain: 'test.myshopify.com' });
+      await api.post('/sync', { shopDomain: 'deepak-test-dev.myshopify.com' });
     } catch (error) {
       console.error('Sync failed', error);
     } finally {
@@ -33,9 +33,9 @@ export default function SyncController() {
             Trigger a manual data synchronization for all connected tenants.
           </p>
         </div>
-        <Button 
-          size="lg" 
-          onClick={handleSync} 
+        <Button
+          size="lg"
+          onClick={handleSync}
           disabled={isSyncing}
           className="w-full max-w-xs"
         >
