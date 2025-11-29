@@ -26,6 +26,9 @@ RUN npx prisma generate
 # Build the backend
 RUN npm run build
 
+# Debug: List the contents of the dist directory
+RUN ls -R dist
+
 # Make the start script executable
 RUN chmod +x start.sh
 
