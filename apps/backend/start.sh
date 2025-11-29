@@ -1,8 +1,9 @@
 #!/bin/sh
 
 # Start NATS server in the background with JetStream enabled
+# Bind to localhost only to prevent external health checks from causing "Client parser ERROR"
 echo "Starting NATS Server..."
-nats-server -p 4222 -js &
+nats-server -p 4222 -a 127.0.0.1 -js &
 
 # Wait a moment for NATS to initialize
 sleep 2

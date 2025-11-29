@@ -8,11 +8,13 @@ export const ensureTenantExists = async () => {
   const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
   if (!shopDomain || !accessToken) {
+    console.log('SHOP_DOMAIN or SHOPIFY_ACCESS_TOKEN not set, skipping tenant seeding');
     logger.warn('SHOP_DOMAIN or SHOPIFY_ACCESS_TOKEN not set, skipping tenant seeding');
     return;
   }
 
   try {
+    console.log(`Seeding tenant for domain: ${shopDomain}`);
     const tenant = await prisma.tenant.upsert({
       where: { shopDomain },
       update: { accessToken },
@@ -21,8 +23,10 @@ export const ensureTenantExists = async () => {
         accessToken,
       },
     });
+    console.log(`Ensured tenant exists: ${tenant.id}`);
     logger.info('Ensured tenant exists', { tenantId: tenant.id, shopDomain });
   } catch (error) {
+    console.error('Failed to seed tenant', error);
     logger.error('Failed to seed tenant', error);
   }
 };
