@@ -17,6 +17,7 @@ model Tenant {
   customers   Customer[]
   orders      Order[]
   products    Product[]
+  checkouts   Checkout[]
 }
 
 model Customer {
@@ -51,6 +52,21 @@ model Product {
   vendor    String?
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, shopifyId])
+}
+
+model Checkout {
+  id                   String   @id @default(uuid())
+  shopifyId            String
+  token                String
+  totalPrice           String?
+  currency             String?
+  abandonedCheckoutUrl String?
+  completedAt          DateTime?
+  updatedAt            DateTime @updatedAt
+  tenantId             String
+  tenant               Tenant   @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, shopifyId])
 }

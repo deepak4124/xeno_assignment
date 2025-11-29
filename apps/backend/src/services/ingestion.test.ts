@@ -5,6 +5,7 @@ const mockPrisma = {
   customer: { upsert: mockUpsert },
   order: { upsert: mockUpsert },
   product: { upsert: mockUpsert },
+  checkout: { upsert: mockUpsert },
 };
 
 jest.mock('@prisma/client', () => {
@@ -133,6 +134,56 @@ describe('IngestionService', () => {
           shopifyId: '789',
           title: 'Test Product',
           vendor: 'Test Vendor',
+          tenantId,
+        },
+      });
+    });
+  });
+
+  describe('upsertCheckout', () => {
+    it('should upsert a checkout correctly', async () => {
+      const checkoutData = {
+        id: 999,
+        token: 'abc-token',
+        total_price: '50.00',
+        currency: 'USD',
+        abandoned_checkout_url: 'https://checkout.url',
+        updated_at: new Date().toISOString(),
+        completed_at: null
+      };
+
+      mockUpsert.mockResolvedValue({
+        id: 'db-id',
+        shopifyId: checkoutData.id.toString(),
+        token: checkoutData.token,
+        totalPrice: checkoutData.total_price,
+        currency: checkoutData.currency,
+        abandonedCheckoutUrl: checkoutData.abandoned_checkout_url,
+        updatedAt: new Date(checkoutData.updated_at),
+        completedAt: null,
+        tenantId
+      });
+
+      await IngestionService.upsertCheckout(tenantId, checkoutData);
+
+      expect(mockPrisma.checkout.upsert).toHaveBeenCalledWith({
+        where: { tenantId_shopifyId: { tenantId, shopifyId: '999' } },
+        update: {
+          token: 'abc-token',
+          totalPrice: '50.00',
+          currency: 'USD',
+          abandonedCheckoutUrl: 'https://checkout.url',
+          completedAt: null,
+          updatedAt: expect.any(Date)
+        },
+        create: {
+          shopifyId: '999',
+          token: 'abc-token',
+          totalPrice: '50.00',
+          currency: 'USD',
+          abandonedCheckoutUrl: 'https://checkout.url',
+          completedAt: null,
+          updatedAt: expect.any(Date),
           tenantId,
         },
       });
