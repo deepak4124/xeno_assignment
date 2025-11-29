@@ -15,6 +15,10 @@ const mockPrisma = {
   },
   systemLog: {
     findMany: mockFindMany,
+  },
+  checkout: {
+    count: mockCount,
+    findMany: mockFindMany,
   }
 };
 
@@ -52,13 +56,23 @@ describe('Dashboard Endpoints', () => {
 
   describe('GET /api/stats', () => {
     it('should return aggregated stats', async () => {
-      mockPrisma.order.findMany.mockResolvedValue([
+      // 1. order.findMany (Total Revenue)
+      mockFindMany.mockResolvedValueOnce([
         { totalPrice: '100.00' },
         { totalPrice: '50.50' }
       ]);
-      // Since customer.count and order.count share the same mock function, we chain return values
-      // First call is customer.count(), second is order.count()
-      mockCount.mockResolvedValueOnce(10).mockResolvedValueOnce(5);
+      
+      // 2. customer.count, 3. order.count, 4. checkout.count
+      mockCount
+        .mockResolvedValueOnce(10)
+        .mockResolvedValueOnce(5)
+        .mockResolvedValueOnce(3);
+
+      // 5. checkout.findMany (Abandoned Revenue)
+      mockFindMany.mockResolvedValueOnce([
+        { totalPrice: '20.00' },
+        { totalPrice: '10.00' }
+      ]);
 
       const res = await request(app).get('/api/stats');
 
@@ -66,12 +80,14 @@ describe('Dashboard Endpoints', () => {
       expect(res.body).toEqual({
         totalRevenue: 150.50,
         activeCustomers: 10,
-        totalOrders: 5
+        totalOrders: 5,
+        activeCheckouts: 3,
+        abandonedRevenue: 30.00
       });
     });
 
     it('should handle empty data', async () => {
-      mockPrisma.order.findMany.mockResolvedValue([]);
+      mockFindMany.mockResolvedValue([]); // For both order and checkout calls
       mockCount.mockResolvedValue(0);
 
       const res = await request(app).get('/api/stats');
@@ -80,7 +96,9 @@ describe('Dashboard Endpoints', () => {
       expect(res.body).toEqual({
         totalRevenue: 0,
         activeCustomers: 0,
-        totalOrders: 0
+        totalOrders: 0,
+        activeCheckouts: 0,
+        abandonedRevenue: 0
       });
     });
   });

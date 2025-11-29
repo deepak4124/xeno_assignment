@@ -7,11 +7,11 @@ export const getStats = async (req: Request, res: Response) => {
     // For this assignment, we might just aggregate everything or pick the first tenant
     // Let's assume we want stats for all tenants or a specific one if provided
     // For simplicity, let's aggregate all for now, or just count.
-    
+
     const totalRevenueResult = await prisma.order.findMany({
       select: { totalPrice: true }
     });
-    
+
     const totalRevenue = totalRevenueResult.reduce((acc: number, order: { totalPrice: string | null }) => {
       return acc + (parseFloat(order.totalPrice || '0') || 0);
     }, 0);
@@ -19,10 +19,24 @@ export const getStats = async (req: Request, res: Response) => {
     const activeCustomers = await prisma.customer.count();
     const totalOrders = await prisma.order.count();
 
+    // Bonus: Checkouts
+    const activeCheckouts = await prisma.checkout.count();
+
+    const abandonedCheckouts = await prisma.checkout.findMany({
+      where: { completedAt: null },
+      select: { totalPrice: true }
+    });
+
+    const abandonedRevenue = abandonedCheckouts.reduce((acc: number, c: { totalPrice: string | null }) => {
+      return acc + (parseFloat(c.totalPrice || '0') || 0);
+    }, 0);
+
     res.json({
       totalRevenue,
       activeCustomers,
-      totalOrders
+      totalOrders,
+      activeCheckouts,
+      abandonedRevenue
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
@@ -58,7 +72,7 @@ export const getTopCustomers = async (req: Request, res: Response) => {
 
     // Aggregate in memory (since totalPrice is string)
     const customerSpending: Record<string, number> = {};
-    
+
     orders.forEach((order: { customerId: string | null, totalPrice: string | null }) => {
       if (order.customerId) {
         const price = parseFloat(order.totalPrice || '0') || 0;
