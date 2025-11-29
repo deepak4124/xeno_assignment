@@ -29,15 +29,13 @@ graph TD
     %% Backend Services
     subgraph "Backend Infrastructure"
         API[Express API Gateway]
-        NATS[NATS JetStream
-(Message Queue)]
+        NATS["NATS JetStream<br/>(Message Queue)"]
         Worker[Background Worker Service]
     end
 
     %% Data Storage
     subgraph "Persistence"
-        DB[(PostgreSQL
-Prisma ORM)]
+        DB[("PostgreSQL<br/>Prisma ORM")]
     end
 
     %% Frontend
@@ -49,8 +47,7 @@ Prisma ORM)]
     Shopify -- "Webhooks (Orders/Customers)" --> API
     User -- "Trigger Sync" --> API
     
-    API -- "Publish Event
-(webhook.* / ingest.*)" --> NATS
+    API -- "Publish Event<br/>(webhook.* / ingest.*)" --> NATS
     
     NATS -- "Consume Event" --> Worker
     
