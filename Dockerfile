@@ -13,6 +13,9 @@ COPY apps/backend/package.json apps/backend/
 # Install dependencies
 RUN npm install
 
+# Install NATS Server (Embedded for single-container deployment)
+RUN apk add --no-cache nats-server
+
 # Copy backend source code
 COPY apps/backend apps/backend
 
@@ -23,8 +26,11 @@ RUN npx prisma generate
 # Build the backend
 RUN npm run build
 
+# Make the start script executable
+RUN chmod +x start.sh
+
 # Expose the port
 EXPOSE 4000
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application using the wrapper script
+CMD ["./start.sh"]
