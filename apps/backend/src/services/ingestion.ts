@@ -27,14 +27,16 @@ export class IngestionService {
       update: { 
         totalPrice: data.total_price, 
         currency: data.currency, 
-        orderNumber: data.order_number 
+        orderNumber: data.order_number,
+        customerId: data.customer ? data.customer.id.toString() : null
       },
       create: {
         shopifyId: data.id.toString(),
         totalPrice: data.total_price,
         currency: data.currency,
         orderNumber: data.order_number,
-        tenantId
+        tenantId,
+        customerId: data.customer ? data.customer.id.toString() : null
       }
     });
   }

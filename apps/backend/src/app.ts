@@ -1,11 +1,15 @@
 import express from 'express';
+import cors from 'cors';
 import { publishSyncJob } from './nats/producer';
 import { PrismaClient } from '@prisma/client';
 import { validateWebhook } from './middleware/webhookAuth';
 import { handleWebhook } from './controllers/webhookController';
+import { getStats, getSyncStatus, getTopCustomers } from './controllers/dashboardController';
 import { logger } from './utils/logger';
 
 const app = express();
+
+app.use(cors());
 
 // Middleware to capture raw body for HMAC verification
 app.use(express.json({
@@ -18,6 +22,11 @@ const prisma = new PrismaClient();
 
 // Webhook Endpoint
 app.post('/api/webhooks', validateWebhook, handleWebhook);
+
+// Dashboard Endpoints
+app.get('/api/stats', getStats);
+app.get('/api/sync-status', getSyncStatus);
+app.get('/api/top-customers', getTopCustomers);
 
 app.post('/api/sync', async (req, res) => {
   const { shopDomain } = req.body;

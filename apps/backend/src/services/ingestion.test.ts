@@ -91,6 +91,7 @@ describe('IngestionService', () => {
           totalPrice: '100.00',
           currency: 'USD',
           orderNumber: 1001,
+          customerId: null,
         },
         create: {
           shopifyId: '456',
@@ -98,6 +99,7 @@ describe('IngestionService', () => {
           currency: 'USD',
           orderNumber: 1001,
           tenantId,
+          customerId: null,
         },
       });
     });

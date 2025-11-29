@@ -11,6 +11,7 @@ export const handleWebhook = async (req: Request, res: Response) => {
   }
 
   try {
+    logger.info(`Received webhook: ${topic} for ${shopDomain}`);
     // Fire and Forget: Publish to NATS immediately using shopDomain
     // We do NOT check the DB here to save time and avoid timeouts.
     await publishWebhookEvent(shopDomain, topic, req.body);
