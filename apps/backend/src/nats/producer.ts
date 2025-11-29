@@ -18,8 +18,15 @@ export const publishWebhookEvent = async (shopDomain: string, topic: string, pay
   // Topic format: orders/create -> orders.create
   const cleanTopic = topic.replace('/', '.');
   // Subject: webhook.{shopDomain}.{resource}.{event}
+  // We keep the subject for potential filtering, but we'll rely on the payload for processing
   const subject = `webhook.${shopDomain}.${cleanTopic}`;
   
-  await js.publish(subject, sc.encode(JSON.stringify(payload)));
+  const messageBody = {
+    shopDomain,
+    topic,
+    data: payload
+  };
+  
+  await js.publish(subject, sc.encode(JSON.stringify(messageBody)));
   logger.info('Published webhook event', { topic: cleanTopic, shopDomain });
 };

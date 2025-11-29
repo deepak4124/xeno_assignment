@@ -52,7 +52,12 @@ describe('Worker Message Processing', () => {
     it('should process a customer webhook successfully', async () => {
       mockJsMsg.subject = 'webhook.test-shop.customers.create';
       const payload = { id: 123, email: 'test@example.com' };
-      mockJsMsg.data = sc.encode(JSON.stringify(payload));
+      const messageBody = {
+        shopDomain: 'test-shop',
+        topic: 'customers/create',
+        data: payload
+      };
+      mockJsMsg.data = sc.encode(JSON.stringify(messageBody));
 
       mockFindUnique.mockResolvedValue({ id: 'tenant-1', shopDomain: 'test-shop' });
 
@@ -65,7 +70,12 @@ describe('Worker Message Processing', () => {
 
     it('should term message if tenant not found for webhook', async () => {
       mockJsMsg.subject = 'webhook.unknown-shop.customers.create';
-      mockJsMsg.data = sc.encode(JSON.stringify({}));
+      const messageBody = {
+        shopDomain: 'unknown-shop',
+        topic: 'customers/create',
+        data: {}
+      };
+      mockJsMsg.data = sc.encode(JSON.stringify(messageBody));
 
       mockFindUnique.mockResolvedValue(null);
 
