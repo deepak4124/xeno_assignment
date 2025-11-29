@@ -7,7 +7,7 @@ import { DollarSign, Users, Package } from 'lucide-react';
 
 export default function MetricCards() {
   const { data, error } = useSWR('/stats', fetcher, { refreshInterval: 5000 });
-  
+
   const metrics = [
     {
       title: "Total Revenue",
@@ -26,6 +26,12 @@ export default function MetricCards() {
       value: data ? data.totalOrders.toLocaleString() : "Loading...",
       change: "Real-time data",
       icon: Package,
+    },
+    {
+      title: "Abandoned Revenue",
+      value: data ? `$${data.abandonedRevenue?.toLocaleString() || '0'}` : "Loading...",
+      change: "Potential Revenue",
+      icon: DollarSign,
     },
   ];
 
