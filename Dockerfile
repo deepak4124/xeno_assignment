@@ -24,6 +24,12 @@ COPY apps/backend apps/backend
 WORKDIR /app/apps/backend
 RUN npx prisma generate
 
+# Push the database schema (Create tables)
+# Note: In production, you usually use 'prisma migrate deploy', but 'db push' is fine for this assignment/dev setup
+# We run this during the build phase to ensure tables exist before the app starts
+# However, this requires the DATABASE_URL to be available at build time, which it isn't on Render.
+# So we will move this to the start script.
+
 # Build the backend
 RUN npm run build
 
