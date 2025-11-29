@@ -1,0 +1,12 @@
+{
+  "name": "xeno-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "start:backend": "npm start -w apps/backend"
+  }
+}
