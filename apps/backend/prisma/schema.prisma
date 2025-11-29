@@ -39,6 +39,7 @@ model Order {
   currency    String?
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  customerId  String?
 
   @@unique([tenantId, shopifyId])
 }
@@ -52,4 +53,12 @@ model Product {
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, shopifyId])
+}
+
+model SystemLog {
+  id        String   @id @default(uuid())
+  level     String   // INFO, WARN, ERROR, SUCCESS
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
 }
