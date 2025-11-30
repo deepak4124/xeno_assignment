@@ -11,6 +11,7 @@ model Tenant {
   id          String   @id @default(uuid())
   shopDomain  String   @unique
   accessToken String
+  webhookSecret String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -27,7 +28,7 @@ model Customer {
   firstName String?
   lastName  String?
   tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   
   @@unique([tenantId, shopifyId])
 }
@@ -39,7 +40,7 @@ model Order {
   totalPrice  String?
   currency    String?
   tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customerId  String?
 
   @@unique([tenantId, shopifyId])
@@ -51,7 +52,7 @@ model Product {
   title     String
   vendor    String?
   tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, shopifyId])
 }
@@ -66,7 +67,7 @@ model Checkout {
   completedAt          DateTime?
   updatedAt            DateTime @updatedAt
   tenantId             String
-  tenant               Tenant   @relation(fields: [tenantId], references: [id])
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, shopifyId])
 }

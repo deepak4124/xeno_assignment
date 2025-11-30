@@ -6,7 +6,7 @@ import { validateWebhook } from './middleware/webhookAuth';
 import { basicAuth } from './middleware/basicAuth';
 import { handleWebhook } from './controllers/webhookController';
 import { getStats, getSyncStatus, getTopCustomers } from './controllers/dashboardController';
-import { onboardTenant, listTenants } from './controllers/tenantController';
+import { onboardTenant, listTenants, deleteTenant } from './controllers/tenantController';
 import { logger } from './utils/logger';
 
 const app = express();
@@ -28,6 +28,7 @@ app.post('/api/webhooks', validateWebhook, handleWebhook);
 // Tenant Management (Basic Auth Protected)
 app.post('/api/tenants', basicAuth, onboardTenant);
 app.get('/api/tenants', basicAuth, listTenants);
+app.delete('/api/tenants/:id', basicAuth, deleteTenant);
 
 // Dashboard Endpoints
 app.get('/api/stats', getStats);

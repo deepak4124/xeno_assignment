@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTenant } from '@/lib/TenantContext';
-import { Plus, LogIn, Check, ChevronsUpDown, LogOut } from 'lucide-react';
+import { Plus, LogIn, Check, ChevronsUpDown, LogOut, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function TenantManager() {
@@ -18,6 +18,7 @@ export default function TenantManager() {
   // Onboard State
   const [newShopDomain, setNewShopDomain] = useState('');
   const [newAccessToken, setNewAccessToken] = useState('');
+  const [newWebhookSecret, setNewWebhookSecret] = useState('');
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem('admin_auth'));
@@ -38,6 +39,26 @@ export default function TenantManager() {
     window.location.reload(); // Simple way to clear state
   };
 
+  const handleDelete = async (tenantId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this tenant? This action cannot be undone.')) return;
+
+    const auth = localStorage.getItem('admin_auth');
+    if (!auth) return;
+
+    try {
+      await api.delete(`/tenants/${tenantId}`, {
+        headers: { Authorization: `Basic ${auth}` }
+      });
+      if (selectedTenant?.id === tenantId) {
+        setSelectedTenant(null as any);
+      }
+      await refreshTenants();
+    } catch (error) {
+      alert('Failed to delete tenant');
+    }
+  };
+
   const handleOnboard = async (e: React.FormEvent) => {
     e.preventDefault();
     const auth = localStorage.getItem('admin_auth');
@@ -46,7 +67,8 @@ export default function TenantManager() {
     try {
       await api.post('/tenants', {
         shopDomain: newShopDomain,
-        accessToken: newAccessToken
+        accessToken: newAccessToken,
+        webhookSecret: newWebhookSecret || undefined
       }, {
         headers: { Authorization: `Basic ${auth}` }
       });
@@ -54,6 +76,7 @@ export default function TenantManager() {
       setIsOnboardOpen(false);
       setNewShopDomain('');
       setNewAccessToken('');
+      setNewWebhookSecret('');
     } catch (error) {
       alert('Failed to onboard tenant');
     }
@@ -111,14 +134,25 @@ export default function TenantManager() {
 
         <div className="absolute top-full left-0 w-full mt-1 bg-zinc-900 border border-zinc-800 rounded-md shadow-xl hidden group-hover:block z-50">
           {tenants.map(tenant => (
-            <button
+            <div
               key={tenant.id}
-              onClick={() => setSelectedTenant(tenant)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-800 flex items-center justify-between"
+              className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-zinc-800 group/item"
             >
-              <span className="truncate">{tenant.shopDomain}</span>
-              {selectedTenant?.id === tenant.id && <Check className="h-3 w-3 text-green-500" />}
-            </button>
+              <button
+                onClick={() => setSelectedTenant(tenant)}
+                className="flex-1 text-left truncate flex items-center"
+              >
+                <span className="truncate mr-2">{tenant.shopDomain}</span>
+                {selectedTenant?.id === tenant.id && <Check className="h-3 w-3 text-green-500" />}
+              </button>
+              <button
+                onClick={(e) => handleDelete(tenant.id, e)}
+                className="p-1 text-zinc-500 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                title="Delete Tenant"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -150,6 +184,13 @@ export default function TenantManager() {
                 className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
                 value={newAccessToken}
                 onChange={e => setNewAccessToken(e.target.value)}
+              />
+              <input 
+                type="text" 
+                placeholder="Webhook Secret (Optional)" 
+                className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
+                value={newWebhookSecret}
+                onChange={e => setNewWebhookSecret(e.target.value)}
               />
               <button type="submit" className="w-full bg-white text-black rounded py-1 text-sm font-medium">
                 Onboard
