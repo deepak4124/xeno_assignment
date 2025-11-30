@@ -55,14 +55,14 @@ export const processMessage = async (msg: JsMsg, js: JetStreamClient) => {
     const data = JSON.parse(sc.decode(msg.data));
     const cursor = data.cursor;
 
-    logger.info('Processing sync job', { resource, tenantId, cursor: cursor || 'Start' });
-
     const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
     if (!tenant) {
       logger.error('Tenant not found', { tenantId });
       msg.term();
       return;
     }
+
+    logger.info('Processing sync job', { resource, tenantId, shopDomain: tenant.shopDomain, cursor: cursor || 'Start' });
 
     const shopify = new ShopifyService(tenant.shopDomain, tenant.accessToken);
     let result;
@@ -86,9 +86,9 @@ export const processMessage = async (msg: JsMsg, js: JetStreamClient) => {
     if (result && result.nextCursor) {
       const nextPayload = JSON.stringify({ status: 'processing', cursor: result.nextCursor });
       await js.publish(msg.subject, sc.encode(nextPayload));
-      logger.info('Triggered next page', { resource });
+      logger.info('Triggered next page', { resource, shopDomain: tenant.shopDomain });
     } else {
-      logger.info('Finished syncing', { resource, tenantId });
+      logger.info('Finished syncing', { resource, tenantId, shopDomain: tenant.shopDomain });
     }
 
     msg.ack();

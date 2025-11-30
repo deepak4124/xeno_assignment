@@ -6,7 +6,7 @@ const logToDb = async (level: string, message: string, metadata?: any) => {
       data: {
         level,
         message,
-        metadata: metadata ? JSON.stringify(metadata) : undefined
+        metadata: metadata ?? undefined
       }
     });
   } catch (err) {

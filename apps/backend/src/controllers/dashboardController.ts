@@ -3,12 +3,18 @@ import prisma from '../utils/prisma';
 
 export const getStats = async (req: Request, res: Response) => {
   try {
-    // In a real multi-tenant app, we should filter by tenantId from the authenticated user/request
-    // For this assignment, we might just aggregate everything or pick the first tenant
-    // Let's assume we want stats for all tenants or a specific one if provided
-    // For simplicity, let's aggregate all for now, or just count.
+    const { shopDomain } = req.query;
+    let tenantId: string | undefined;
+
+    if (shopDomain) {
+      const tenant = await prisma.tenant.findUnique({ where: { shopDomain: String(shopDomain) } });
+      if (tenant) tenantId = tenant.id;
+    }
+
+    const whereClause = tenantId ? { tenantId } : {};
 
     const totalRevenueResult = await prisma.order.findMany({
+      where: whereClause,
       select: { totalPrice: true }
     });
 
@@ -16,14 +22,14 @@ export const getStats = async (req: Request, res: Response) => {
       return acc + (parseFloat(order.totalPrice || '0') || 0);
     }, 0);
 
-    const activeCustomers = await prisma.customer.count();
-    const totalOrders = await prisma.order.count();
+    const activeCustomers = await prisma.customer.count({ where: whereClause });
+    const totalOrders = await prisma.order.count({ where: whereClause });
 
     // Bonus: Checkouts
-    const activeCheckouts = await prisma.checkout.count();
+    const activeCheckouts = await prisma.checkout.count({ where: whereClause });
 
     const abandonedCheckouts = await prisma.checkout.findMany({
-      where: { completedAt: null },
+      where: { ...whereClause, completedAt: null },
       select: { totalPrice: true }
     });
 
@@ -46,7 +52,18 @@ export const getStats = async (req: Request, res: Response) => {
 
 export const getSyncStatus = async (req: Request, res: Response) => {
   try {
+    const { shopDomain } = req.query;
+    
+    // Filter by shopDomain in metadata if provided
+    const whereClause = shopDomain ? {
+      metadata: {
+        path: ['shopDomain'],
+        equals: shopDomain
+      }
+    } : {};
+
     const logs = await prisma.systemLog.findMany({
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
       take: 50
     });
@@ -59,9 +76,20 @@ export const getSyncStatus = async (req: Request, res: Response) => {
 
 export const getTopCustomers = async (req: Request, res: Response) => {
   try {
+    const { shopDomain } = req.query;
+    let tenantId: string | undefined;
+
+    if (shopDomain) {
+      const tenant = await prisma.tenant.findUnique({ where: { shopDomain: String(shopDomain) } });
+      if (tenant) tenantId = tenant.id;
+    }
+
+    const whereClause = tenantId ? { tenantId } : {};
+
     // Fetch all orders with customerId and totalPrice
     const orders = await prisma.order.findMany({
       where: {
+        ...whereClause,
         customerId: { not: null }
       },
       select: {
