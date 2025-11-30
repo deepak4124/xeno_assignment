@@ -1,0 +1,172 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useTenant } from '@/lib/TenantContext';
+import { Plus, LogIn, Check, ChevronsUpDown, LogOut } from 'lucide-react';
+import api from '@/lib/api';
+
+export default function TenantManager() {
+  const { tenants, selectedTenant, setSelectedTenant, refreshTenants } = useTenant();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isOnboardOpen, setIsOnboardOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Login State
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Onboard State
+  const [newShopDomain, setNewShopDomain] = useState('');
+  const [newAccessToken, setNewAccessToken] = useState('');
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('admin_auth'));
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const auth = btoa(`${username}:${password}`);
+    localStorage.setItem('admin_auth', auth);
+    setIsLoggedIn(true);
+    await refreshTenants();
+    setIsLoginOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_auth');
+    setIsLoggedIn(false);
+    window.location.reload(); // Simple way to clear state
+  };
+
+  const handleOnboard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const auth = localStorage.getItem('admin_auth');
+    if (!auth) return;
+
+    try {
+      await api.post('/tenants', {
+        shopDomain: newShopDomain,
+        accessToken: newAccessToken
+      }, {
+        headers: { Authorization: `Basic ${auth}` }
+      });
+      await refreshTenants();
+      setIsOnboardOpen(false);
+      setNewShopDomain('');
+      setNewAccessToken('');
+    } catch (error) {
+      alert('Failed to onboard tenant');
+    }
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="flex items-center space-x-2">
+        <button 
+          onClick={() => setIsLoginOpen(!isLoginOpen)}
+          className="flex items-center space-x-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm transition-colors"
+        >
+          <LogIn className="h-4 w-4" />
+          <span>Admin Login</span>
+        </button>
+
+        {isLoginOpen && (
+          <div className="absolute top-16 right-8 w-64 bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow-xl z-50">
+            <form onSubmit={handleLogin} className="space-y-3">
+              <h3 className="font-medium text-sm">Admin Credentials</h3>
+              <input 
+                type="text" 
+                placeholder="Username" 
+                className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
+              <input 
+                type="password" 
+                placeholder="Password" 
+                className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+              <button type="submit" className="w-full bg-white text-black rounded py-1 text-sm font-medium">
+                Login
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center space-x-4">
+      {/* Tenant Selector */}
+      <div className="relative group">
+        <button className="flex items-center space-x-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md min-w-[200px] justify-between">
+          <span className="text-sm font-medium truncate">
+            {selectedTenant?.shopDomain || 'Select Tenant'}
+          </span>
+          <ChevronsUpDown className="h-4 w-4 text-zinc-500" />
+        </button>
+
+        <div className="absolute top-full left-0 w-full mt-1 bg-zinc-900 border border-zinc-800 rounded-md shadow-xl hidden group-hover:block z-50">
+          {tenants.map(tenant => (
+            <button
+              key={tenant.id}
+              onClick={() => setSelectedTenant(tenant)}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-800 flex items-center justify-between"
+            >
+              <span className="truncate">{tenant.shopDomain}</span>
+              {selectedTenant?.id === tenant.id && <Check className="h-3 w-3 text-green-500" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Add Tenant Button */}
+      <div className="relative">
+        <button 
+          onClick={() => setIsOnboardOpen(!isOnboardOpen)}
+          className="flex items-center space-x-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Tenant</span>
+        </button>
+
+        {isOnboardOpen && (
+          <div className="absolute top-full right-0 mt-2 w-72 bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow-xl z-50">
+            <form onSubmit={handleOnboard} className="space-y-3">
+              <h3 className="font-medium text-sm">Onboard New Tenant</h3>
+              <input 
+                type="text" 
+                placeholder="Shop Domain (e.g. store.myshopify.com)" 
+                className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
+                value={newShopDomain}
+                onChange={e => setNewShopDomain(e.target.value)}
+              />
+              <input 
+                type="text" 
+                placeholder="Access Token" 
+                className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
+                value={newAccessToken}
+                onChange={e => setNewAccessToken(e.target.value)}
+              />
+              <button type="submit" className="w-full bg-white text-black rounded py-1 text-sm font-medium">
+                Onboard
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+
+      {/* Logout Button */}
+      <button 
+        onClick={handleLogout}
+        className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors"
+        title="Logout"
+      >
+        <LogOut className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}

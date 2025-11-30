@@ -2,34 +2,46 @@
 
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api';
+import { useTenant } from '@/lib/TenantContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Users, Package } from 'lucide-react';
 
 export default function MetricCards() {
-  const { data, error } = useSWR('/stats', fetcher, { refreshInterval: 5000 });
+  const { selectedTenant } = useTenant();
+  const { data, error } = useSWR(
+    selectedTenant ? `/stats?shopDomain=${selectedTenant.shopDomain}` : null, 
+    fetcher, 
+    { refreshInterval: 5000 }
+  );
+
+  const getValue = (val: any, formatter: (v: any) => string = (v) => v) => {
+    if (!selectedTenant) return "Select Tenant";
+    if (!data) return "Loading...";
+    return formatter(val);
+  };
 
   const metrics = [
     {
       title: "Total Revenue",
-      value: data ? `$${data.totalRevenue.toLocaleString()}` : "Loading...",
+      value: getValue(data?.totalRevenue, (v) => `$${v.toLocaleString()}`),
       change: "Real-time data",
       icon: DollarSign,
     },
     {
       title: "Active Customers",
-      value: data ? data.activeCustomers.toLocaleString() : "Loading...",
+      value: getValue(data?.activeCustomers, (v) => v.toLocaleString()),
       change: "Real-time data",
       icon: Users,
     },
     {
       title: "Total Orders",
-      value: data ? data.totalOrders.toLocaleString() : "Loading...",
+      value: getValue(data?.totalOrders, (v) => v.toLocaleString()),
       change: "Real-time data",
       icon: Package,
     },
     {
       title: "Abandoned Revenue",
-      value: data ? `$${data.abandonedRevenue?.toLocaleString() || '0'}` : "Loading...",
+      value: getValue(data?.abandonedRevenue, (v) => `$${v?.toLocaleString() || '0'}`),
       change: "Potential Revenue",
       icon: DollarSign,
     },

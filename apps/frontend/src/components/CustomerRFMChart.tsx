@@ -2,11 +2,16 @@
 
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api';
+import { useTenant } from '@/lib/TenantContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
 export default function CustomerRFMChart() {
-  const { data } = useSWR('/top-customers', fetcher);
+  const { selectedTenant } = useTenant();
+  const { data } = useSWR(
+    selectedTenant ? `/top-customers?shopDomain=${selectedTenant.shopDomain}` : null, 
+    fetcher
+  );
 
   return (
     <Card className="h-full">

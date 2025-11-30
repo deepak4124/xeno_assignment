@@ -2,18 +2,21 @@
 
 import { useState } from 'react';
 import api from '@/lib/api';
+import { useTenant } from '@/lib/TenantContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Play } from 'lucide-react';
 
 export default function SyncController() {
+  const { selectedTenant } = useTenant();
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleSync = async () => {
+    if (!selectedTenant) return;
+    
     setIsSyncing(true);
     try {
-      // Hardcoded shopDomain for demo purposes, in a real app this would come from context/auth
-      await api.post('/sync', { shopDomain: 'deepak-test-dev.myshopify.com' });
+      await api.post('/sync', { shopDomain: selectedTenant.shopDomain });
     } catch (error) {
       console.error('Sync failed', error);
     } finally {
@@ -30,13 +33,13 @@ export default function SyncController() {
       <CardContent className="flex flex-col items-center justify-center h-[200px] space-y-4">
         <div className="text-center space-y-2">
           <p className="text-sm text-zinc-400">
-            Trigger a manual data synchronization for all connected tenants.
+            Trigger a manual data synchronization for {selectedTenant?.shopDomain || 'selected tenant'}.
           </p>
         </div>
         <Button
           size="lg"
           onClick={handleSync}
-          disabled={isSyncing}
+          disabled={isSyncing || !selectedTenant}
           className="w-full max-w-xs"
         >
           {isSyncing ? (

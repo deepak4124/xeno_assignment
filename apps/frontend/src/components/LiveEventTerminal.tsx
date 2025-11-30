@@ -5,6 +5,7 @@ import { fetcher } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Terminal } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTenant } from '@/lib/TenantContext';
 
 interface LogEntry {
   timestamp: string;
@@ -13,7 +14,12 @@ interface LogEntry {
 }
 
 export default function LiveEventTerminal() {
-  const { data } = useSWR('/sync-status', fetcher, { refreshInterval: 2000 });
+  const { selectedTenant } = useTenant();
+  const { data } = useSWR(
+    selectedTenant ? `/sync-status?shopDomain=${selectedTenant.shopDomain}` : null, 
+    fetcher, 
+    { refreshInterval: 2000 }
+  );
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
