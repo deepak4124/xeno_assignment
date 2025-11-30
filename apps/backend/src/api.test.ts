@@ -5,11 +5,13 @@ import request from 'supertest';
 // Mock Prisma
 const mockFindUnique = jest.fn();
 const mockCreate = jest.fn();
+const mockUpsert = jest.fn();
 
 const mockPrisma = {
   tenant: {
     findUnique: mockFindUnique,
     create: mockCreate,
+    upsert: mockUpsert,
   },
 };
 
@@ -68,17 +70,22 @@ describe('API Endpoints', () => {
   describe('POST /api/tenants', () => {
     it('should create a new tenant', async () => {
       const newTenant = { id: 'tenant-123', shopDomain: 'new.myshopify.com', accessToken: 'token' };
-      mockCreate.mockResolvedValue(newTenant);
+      mockUpsert.mockResolvedValue(newTenant);
 
-      const res = await request(app).post('/api/tenants').send({
-        shopDomain: 'new.myshopify.com',
-        accessToken: 'token',
-      });
+      const res = await request(app)
+        .post('/api/tenants')
+        .auth('admin', 'admin123')
+        .send({
+          shopDomain: 'new.myshopify.com',
+          accessToken: 'token',
+        });
 
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(newTenant);
-      expect(mockCreate).toHaveBeenCalledWith({
-        data: { shopDomain: 'new.myshopify.com', accessToken: 'token' },
+      expect(res.status).toBe(201);
+      expect(res.body.tenant).toEqual(newTenant);
+      expect(mockUpsert).toHaveBeenCalledWith({
+        where: { shopDomain: 'new.myshopify.com' },
+        update: { accessToken: 'token' },
+        create: { shopDomain: 'new.myshopify.com', accessToken: 'token' },
       });
     });
   });

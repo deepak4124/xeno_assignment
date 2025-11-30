@@ -3,8 +3,10 @@ import cors from 'cors';
 import { publishSyncJob } from './nats/producer';
 import { PrismaClient } from '@prisma/client';
 import { validateWebhook } from './middleware/webhookAuth';
+import { basicAuth } from './middleware/basicAuth';
 import { handleWebhook } from './controllers/webhookController';
 import { getStats, getSyncStatus, getTopCustomers } from './controllers/dashboardController';
+import { onboardTenant, listTenants } from './controllers/tenantController';
 import { logger } from './utils/logger';
 
 const app = express();
@@ -22,6 +24,10 @@ const prisma = new PrismaClient();
 
 // Webhook Endpoint
 app.post('/api/webhooks', validateWebhook, handleWebhook);
+
+// Tenant Management (Basic Auth Protected)
+app.post('/api/tenants', basicAuth, onboardTenant);
+app.get('/api/tenants', basicAuth, listTenants);
 
 // Dashboard Endpoints
 app.get('/api/stats', getStats);
