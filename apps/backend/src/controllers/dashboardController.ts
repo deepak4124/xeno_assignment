@@ -183,13 +183,17 @@ export const getOrdersTrend = async (req: Request, res: Response) => {
     }, {});
 
     // Fill in missing dates with 0
-    const result = [];
+    const result: { date: string; total: number }[] = [];
     
+    console.log('Dashboard Debug:', { startDate, endDate, ordersCount: orders.length, groupedKeys: Object.keys(grouped) });
+
     if (startDate && endDate) {
       // If range is provided, fill all dates in range
       let current = new Date(String(startDate));
       const end = new Date(String(endDate));
       
+      console.log('Date Range Debug:', { current: current.toISOString(), end: end.toISOString() });
+
       while (current <= end) {
         const dateStr = current.toISOString().split('T')[0];
         result.push({

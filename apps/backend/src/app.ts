@@ -13,6 +13,11 @@ const app = express();
 
 app.use(cors());
 
+// Health Check
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Middleware to capture raw body for HMAC verification
 app.use(express.json({
   verify: (req: any, res, buf) => {
