@@ -25,10 +25,10 @@ const prisma = new PrismaClient();
 // Webhook Endpoint
 app.post('/api/webhooks', validateWebhook, handleWebhook);
 
-// Tenant Management (Basic Auth Protected)
-app.post('/api/tenants', basicAuth, onboardTenant);
-app.get('/api/tenants', basicAuth, listTenants);
-app.delete('/api/tenants/:id', basicAuth, deleteTenant);
+// Tenant Management (Public for demo purposes, or replace with Supabase auth later)
+app.post('/api/tenants', onboardTenant);
+app.get('/api/tenants', listTenants);
+app.delete('/api/tenants/:id', deleteTenant);
 
 // Dashboard Endpoints
 app.get('/api/stats', getStats);

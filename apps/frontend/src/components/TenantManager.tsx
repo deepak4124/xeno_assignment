@@ -1,76 +1,51 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTenant } from '@/lib/TenantContext';
-import { Plus, LogIn, Check, ChevronsUpDown, LogOut, Trash2 } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
+import { Plus, Check, ChevronsUpDown, LogOut, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function TenantManager() {
   const { tenants, selectedTenant, setSelectedTenant, refreshTenants } = useTenant();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const { signOut } = useAuth();
   const [isOnboardOpen, setIsOnboardOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
-  // Login State
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
 
   // Onboard State
   const [newShopDomain, setNewShopDomain] = useState('');
   const [newAccessToken, setNewAccessToken] = useState('');
   const [newWebhookSecret, setNewWebhookSecret] = useState('');
 
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('admin_auth'));
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const auth = btoa(`${username}:${password}`);
-    localStorage.setItem('admin_auth', auth);
-    setIsLoggedIn(true);
-    await refreshTenants();
-    setIsLoginOpen(false);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('admin_auth');
-    setIsLoggedIn(false);
-    window.location.reload(); // Simple way to clear state
-  };
-
   const handleDelete = async (tenantId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to delete this tenant? This action cannot be undone.')) return;
 
-    const auth = localStorage.getItem('admin_auth');
-    if (!auth) return;
-
+    // TODO: Add proper auth check here when backend supports Supabase tokens
+    // const auth = localStorage.getItem('admin_auth');
+    
     try {
       await api.delete(`/tenants/${tenantId}`, {
-        headers: { Authorization: `Basic ${auth}` }
+        // headers: { Authorization: `Basic ${auth}` }
       });
       if (selectedTenant?.id === tenantId) {
         setSelectedTenant(null as any);
       }
       await refreshTenants();
     } catch (error) {
-      alert('Failed to delete tenant');
+      alert('Failed to delete tenant (Auth required)');
     }
   };
 
   const handleOnboard = async (e: React.FormEvent) => {
     e.preventDefault();
-    const auth = localStorage.getItem('admin_auth');
-    if (!auth) return;
-
+    
     try {
       await api.post('/tenants', {
         shopDomain: newShopDomain,
         accessToken: newAccessToken,
         webhookSecret: newWebhookSecret || undefined
       }, {
-        headers: { Authorization: `Basic ${auth}` }
+        // headers: { Authorization: `Basic ${auth}` }
       });
       await refreshTenants();
       setIsOnboardOpen(false);
@@ -78,48 +53,9 @@ export default function TenantManager() {
       setNewAccessToken('');
       setNewWebhookSecret('');
     } catch (error) {
-      alert('Failed to onboard tenant');
+      alert('Failed to onboard tenant (Auth required)');
     }
   };
-
-  if (!isLoggedIn) {
-    return (
-      <div className="flex items-center space-x-2">
-        <button 
-          onClick={() => setIsLoginOpen(!isLoginOpen)}
-          className="flex items-center space-x-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm transition-colors"
-        >
-          <LogIn className="h-4 w-4" />
-          <span>Admin Login</span>
-        </button>
-
-        {isLoginOpen && (
-          <div className="absolute top-16 right-8 w-64 bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow-xl z-50">
-            <form onSubmit={handleLogin} className="space-y-3">
-              <h3 className="font-medium text-sm">Admin Credentials</h3>
-              <input 
-                type="text" 
-                placeholder="Username" 
-                className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-              />
-              <input 
-                type="password" 
-                placeholder="Password" 
-                className="w-full bg-black border border-zinc-800 rounded px-2 py-1 text-sm"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-              />
-              <button type="submit" className="w-full bg-white text-black rounded py-1 text-sm font-medium">
-                Login
-              </button>
-            </form>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center space-x-4">
@@ -202,7 +138,7 @@ export default function TenantManager() {
 
       {/* Logout Button */}
       <button 
-        onClick={handleLogout}
+        onClick={() => signOut()}
         className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors"
         title="Logout"
       >

@@ -26,25 +26,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   const refreshTenants = async () => {
     try {
-      // We need basic auth to list tenants. For the frontend demo, 
-      // we might need to prompt for it or hardcode it for the "demo" experience.
-      // For now, let's assume the user provides it via a prompt or we use a default if in dev.
-      // Ideally, this should be a proper login flow.
-      
-      // For this assignment, I'll use a simple prompt-based approach in the UI, 
-      // but for the initial load, we might fail if not authenticated.
-      // Let's try to fetch without auth first (which will fail), 
-      // or we can just store the credentials in localStorage if the user "logs in".
-      
-      const auth = localStorage.getItem('admin_auth');
-      if (!auth) {
-        setIsLoading(false);
-        return;
-      }
-
-      const res = await api.get('/tenants', {
-        headers: { Authorization: `Basic ${auth}` }
-      });
+      // Fetch tenants without legacy basic auth
+      const res = await api.get('/tenants');
       
       setTenants(res.data);
       
