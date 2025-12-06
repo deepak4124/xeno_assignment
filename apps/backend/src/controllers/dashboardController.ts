@@ -159,8 +159,18 @@ export const getOrdersTrend = async (req: Request, res: Response) => {
     
     if (startDate || endDate) {
       whereClause.createdAt = {};
-      if (startDate) whereClause.createdAt.gte = new Date(String(startDate));
-      if (endDate) whereClause.createdAt.lte = new Date(String(endDate));
+      if (startDate) {
+        // Force start of day in UTC
+        const start = new Date(String(startDate));
+        const dateStr = start.toISOString().split('T')[0];
+        whereClause.createdAt.gte = new Date(`${dateStr}T00:00:00.000Z`);
+      }
+      if (endDate) {
+        // Force end of day in UTC
+        const end = new Date(String(endDate));
+        const dateStr = end.toISOString().split('T')[0];
+        whereClause.createdAt.lte = new Date(`${dateStr}T23:59:59.999Z`);
+      }
     }
 
     const orders = await prisma.order.findMany({
@@ -185,15 +195,15 @@ export const getOrdersTrend = async (req: Request, res: Response) => {
     // Fill in missing dates with 0
     const result: { date: string; total: number }[] = [];
     
-    console.log('Dashboard Debug:', { startDate, endDate, ordersCount: orders.length, groupedKeys: Object.keys(grouped) });
-
     if (startDate && endDate) {
       // If range is provided, fill all dates in range
-      let current = new Date(String(startDate));
-      const end = new Date(String(endDate));
+      // Use UTC dates for iteration to match the grouping
+      const startStr = new Date(String(startDate)).toISOString().split('T')[0];
+      const endStr = new Date(String(endDate)).toISOString().split('T')[0];
       
-      console.log('Date Range Debug:', { current: current.toISOString(), end: end.toISOString() });
-
+      let current = new Date(`${startStr}T00:00:00.000Z`);
+      const end = new Date(`${endStr}T00:00:00.000Z`);
+      
       while (current <= end) {
         const dateStr = current.toISOString().split('T')[0];
         result.push({
