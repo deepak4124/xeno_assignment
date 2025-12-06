@@ -28,7 +28,8 @@ export class IngestionService {
         totalPrice: data.total_price,
         currency: data.currency,
         orderNumber: data.order_number,
-        customerId: data.customer ? data.customer.id.toString() : null
+        customerId: data.customer ? data.customer.id.toString() : null,
+        createdAt: data.created_at ? new Date(data.created_at) : undefined
       },
       create: {
         shopifyId: data.id.toString(),
@@ -36,7 +37,8 @@ export class IngestionService {
         currency: data.currency,
         orderNumber: data.order_number,
         tenantId,
-        customerId: data.customer ? data.customer.id.toString() : null
+        customerId: data.customer ? data.customer.id.toString() : null,
+        createdAt: data.created_at ? new Date(data.created_at) : new Date()
       }
     });
   }
