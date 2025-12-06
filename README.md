@@ -1,4 +1,4 @@
-# Xeno Assignment - Scalable Data Ingestion & Analytics Platform
+# Scalable Data Ingestion & Analytics Platform
 
 ## 1. Problem Statement
 The objective was to build a robust, scalable system capable of ingesting high-volume data (Customers, Orders, Products) from an E-commerce platform (Shopify). The system needed to:
