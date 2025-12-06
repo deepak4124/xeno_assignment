@@ -144,3 +144,52 @@ export const getTopCustomers = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch top customers' });
   }
 };
+
+export const getOrdersTrend = async (req: Request, res: Response) => {
+  try {
+    const { shopDomain, startDate, endDate } = req.query;
+    let tenantId: string | undefined;
+
+    if (shopDomain) {
+      const tenant = await prisma.tenant.findUnique({ where: { shopDomain: String(shopDomain) } });
+      if (tenant) tenantId = tenant.id;
+    }
+
+    const whereClause: any = tenantId ? { tenantId } : {};
+    
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+      if (startDate) whereClause.createdAt.gte = new Date(String(startDate));
+      if (endDate) whereClause.createdAt.lte = new Date(String(endDate));
+    }
+
+    const orders = await prisma.order.findMany({
+      where: whereClause,
+      select: {
+        createdAt: true,
+        totalPrice: true
+      },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    });
+
+    // Group by date (YYYY-MM-DD)
+    const grouped = orders.reduce((acc: Record<string, number>, order: any) => {
+      const date = new Date(order.createdAt).toISOString().split('T')[0];
+      const price = parseFloat(order.totalPrice || '0') || 0;
+      acc[date] = (acc[date] || 0) + price;
+      return acc;
+    }, {});
+
+    const result = Object.entries(grouped).map(([date, total]) => ({
+      date,
+      total
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching orders trend:', error);
+    res.status(500).json({ error: 'Failed to fetch orders trend' });
+  }
+};

@@ -39,6 +39,7 @@ model Order {
   orderNumber Int?
   totalPrice  String?
   currency    String?
+  createdAt   DateTime @default(now())
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customerId  String?

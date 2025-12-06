@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { validateWebhook } from './middleware/webhookAuth';
 import { basicAuth } from './middleware/basicAuth';
 import { handleWebhook } from './controllers/webhookController';
-import { getStats, getSyncStatus, getTopCustomers } from './controllers/dashboardController';
+import { getStats, getSyncStatus, getTopCustomers, getOrdersTrend } from './controllers/dashboardController';
 import { onboardTenant, listTenants, deleteTenant } from './controllers/tenantController';
 import { logger } from './utils/logger';
 
@@ -34,6 +34,7 @@ app.delete('/api/tenants/:id', basicAuth, deleteTenant);
 app.get('/api/stats', getStats);
 app.get('/api/sync-status', getSyncStatus);
 app.get('/api/top-customers', getTopCustomers);
+app.get('/api/orders-trend', getOrdersTrend);
 
 app.post('/api/sync', async (req, res) => {
   const { shopDomain } = req.body;

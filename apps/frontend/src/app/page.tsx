@@ -4,6 +4,7 @@ import MetricCards from '@/components/MetricCards';
 import SyncController from '@/components/SyncController';
 import LiveEventTerminal from '@/components/LiveEventTerminal';
 import CustomerRFMChart from '@/components/CustomerRFMChart';
+import OrdersTrendChart from '@/components/OrdersTrendChart';
 import TenantManager from '@/components/TenantManager';
 import { TenantProvider } from '@/lib/TenantContext';
 import { LayoutDashboard } from 'lucide-react';
@@ -46,17 +47,22 @@ export default function Home() {
             {/* Row 1: Metrics */}
             <MetricCards />
 
-            {/* Row 2: Controls & Charts */}
-            <div className="grid gap-4 md:grid-cols-3 h-[300px]">
+            {/* Row 2: Trend & Sync */}
+            <div className="grid gap-4 md:grid-cols-3 h-[350px]">
+              <div className="md:col-span-2 h-full">
+                <OrdersTrendChart />
+              </div>
               <div className="md:col-span-1 h-full">
                 <SyncController />
               </div>
-              <div className="md:col-span-2 h-full">
-                <CustomerRFMChart />
-              </div>
             </div>
 
-            {/* Row 3: Terminal */}
+            {/* Row 3: Top Customers */}
+            <div className="h-[300px]">
+              <CustomerRFMChart />
+            </div>
+
+            {/* Row 4: Terminal */}
             <div className="h-[400px]">
               <LiveEventTerminal />
             </div>
