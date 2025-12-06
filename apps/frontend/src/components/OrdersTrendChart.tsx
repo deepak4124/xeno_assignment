@@ -16,6 +16,7 @@ export default function OrdersTrendChart() {
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - parseInt(range));
+    start.setHours(0, 0, 0, 0); // Start from the beginning of the day
     return `&startDate=${start.toISOString()}&endDate=${end.toISOString()}`;
   };
 

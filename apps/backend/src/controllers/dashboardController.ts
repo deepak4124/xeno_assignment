@@ -182,10 +182,39 @@ export const getOrdersTrend = async (req: Request, res: Response) => {
       return acc;
     }, {});
 
-    const result = Object.entries(grouped).map(([date, total]) => ({
-      date,
-      total
-    }));
+    // Fill in missing dates with 0
+    const result = [];
+    
+    if (startDate && endDate) {
+      // If range is provided, fill all dates in range
+      let current = new Date(String(startDate));
+      const end = new Date(String(endDate));
+      
+      while (current <= end) {
+        const dateStr = current.toISOString().split('T')[0];
+        result.push({
+          date: dateStr,
+          total: grouped[dateStr] || 0
+        });
+        current.setDate(current.getDate() + 1);
+      }
+    } else {
+      // If "All Time", fill gaps between first and last order
+      const sortedDates = Object.keys(grouped).sort();
+      if (sortedDates.length > 0) {
+        let current = new Date(sortedDates[0]);
+        const end = new Date(sortedDates[sortedDates.length - 1]);
+        
+        while (current <= end) {
+          const dateStr = current.toISOString().split('T')[0];
+          result.push({
+            date: dateStr,
+            total: grouped[dateStr] || 0
+          });
+          current.setDate(current.getDate() + 1);
+        }
+      }
+    }
 
     res.json(result);
   } catch (error) {
