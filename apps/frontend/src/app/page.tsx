@@ -6,7 +6,7 @@ import LiveEventTerminal from '@/components/LiveEventTerminal';
 import CustomerRFMChart from '@/components/CustomerRFMChart';
 import TenantManager from '@/components/TenantManager';
 import { TenantProvider } from '@/lib/TenantContext';
-import { LayoutDashboard, Settings, Database } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -23,14 +23,6 @@ export default function Home() {
             <a href="#" className="flex items-center space-x-3 px-3 py-2 bg-zinc-900 rounded-md text-sm font-medium">
               <LayoutDashboard className="h-4 w-4" />
               <span>Dashboard</span>
-            </a>
-            <a href="#" className="flex items-center space-x-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-md text-sm font-medium transition-colors">
-              <Database className="h-4 w-4" />
-              <span>Data Sources</span>
-            </a>
-            <a href="#" className="flex items-center space-x-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-md text-sm font-medium transition-colors">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
             </a>
           </nav>
         </aside>
