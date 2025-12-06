@@ -33,9 +33,10 @@ graph TD
         Worker[Background Worker Service]
     end
 
-    %% Data Storage
-    subgraph "Persistence"
+    %% Data Storage & Auth
+    subgraph "Persistence & Auth"
         DB[("PostgreSQL<br/>Prisma ORM")]
+        SupabaseAuth[Supabase Auth]
     end
 
     %% Frontend
@@ -45,7 +46,11 @@ graph TD
 
     %% Flows
     Shopify -- "Webhooks (Orders/Customers)" --> API
-    User -- "Trigger Sync" --> API
+    User -- "Login (Magic Link)" --> SupabaseAuth
+    SupabaseAuth -- "Session Token" --> Dashboard
+    User -- "Trigger Sync" --> Dashboard
+    
+    Dashboard -- "Authenticated Requests" --> API
     
     API -- "Publish Event<br/>(webhook.* / ingest.*)" --> NATS
     
