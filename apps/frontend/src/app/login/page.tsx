@@ -16,10 +16,13 @@ export default function LoginPage() {
     setLoading(true);
     setMessage('');
 
+    const redirectTo = `${window.location.origin}/`;
+    console.log('Sending magic link with redirect to:', redirectTo);
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: redirectTo,
       },
     });
 

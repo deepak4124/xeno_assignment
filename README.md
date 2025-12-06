@@ -148,19 +148,31 @@ SHOP_DOMAIN="your-shop.myshopify.com"
 - **email**: Customer email.
 - **tenantId**: Foreign key to Tenant.
 
-## 8. Assumptions
+## 8. Supabase Configuration (Critical for Deployment)
+To ensure the Login Magic Link redirects correctly to your deployed application:
+1.  Go to your **Supabase Dashboard**.
+2.  Navigate to **Authentication** -> **URL Configuration**.
+3.  In **Site URL**, enter your production URL (e.g., `https://your-app.vercel.app`).
+4.  In **Redirect URLs**, add the following:
+    - `http://localhost:3000/` (for local development)
+    - `https://your-app.vercel.app/` (your deployed frontend URL)
+    - `https://your-app.vercel.app/**` (wildcard for safety)
+
+*If you do not add your deployed URL here, Supabase will default to redirecting users to `localhost:3000`.*
+
+## 9. Assumptions
 - **Single Currency**: The dashboard assumes all stores operate in USD or aggregates values raw without currency conversion.
 - **Webhook Trust**: We assume the `X-Shopify-Hmac-Sha256` header is sufficient for verifying authenticity.
 - **Historical Sync**: The sync process fetches *all* data. In production, this should be paginated and checkpointed.
 
-## 9. Next Steps to Productionize
+## 10. Next Steps to Productionize
 1.  **Authentication**: Replace Basic Auth for tenant management with a robust OAuth flow (Shopify App Bridge).
 2.  **Queue Scaling**: Deploy NATS in a cluster mode for high availability.
 3.  **Idempotency**: Enhance the worker to handle out-of-order webhook delivery using Shopify's `updated_at` timestamps.
 4.  **Security**: Rotate webhook secrets and encrypt access tokens in the database.
 5.  **Monitoring**: Add Prometheus/Grafana for tracking NATS lag and worker throughput.
 
-## 10. Testing
+## 11. Testing
 The project includes comprehensive unit and integration tests.
 ```bash
 cd apps/backend
