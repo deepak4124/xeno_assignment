@@ -125,8 +125,42 @@ SHOP_DOMAIN="your-shop.myshopify.com"
 | `GET` | `/api/stats` | Returns aggregated dashboard metrics. |
 | `GET` | `/api/sync-status` | Returns recent system logs for the terminal. |
 | `GET` | `/api/top-customers` | Returns top 5 customers by spending. |
+| `GET` | `/api/orders-trend` | Returns daily order totals (supports date range). |
+| `POST` | `/api/tenants` | Onboards a new tenant (Basic Auth). |
 
-## 7. Testing
+## 7. Data Models
+
+### Tenant
+- **id**: UUID
+- **shopDomain**: Unique Shopify domain (e.g., `store.myshopify.com`)
+- **accessToken**: Encrypted API token for Shopify.
+
+### Order
+- **id**: UUID
+- **shopifyId**: Original Shopify Order ID.
+- **totalPrice**: Order value.
+- **createdAt**: Date of ingestion/creation.
+- **tenantId**: Foreign key to Tenant.
+
+### Customer
+- **id**: UUID
+- **shopifyId**: Original Shopify Customer ID.
+- **email**: Customer email.
+- **tenantId**: Foreign key to Tenant.
+
+## 8. Assumptions
+- **Single Currency**: The dashboard assumes all stores operate in USD or aggregates values raw without currency conversion.
+- **Webhook Trust**: We assume the `X-Shopify-Hmac-Sha256` header is sufficient for verifying authenticity.
+- **Historical Sync**: The sync process fetches *all* data. In production, this should be paginated and checkpointed.
+
+## 9. Next Steps to Productionize
+1.  **Authentication**: Replace Basic Auth for tenant management with a robust OAuth flow (Shopify App Bridge).
+2.  **Queue Scaling**: Deploy NATS in a cluster mode for high availability.
+3.  **Idempotency**: Enhance the worker to handle out-of-order webhook delivery using Shopify's `updated_at` timestamps.
+4.  **Security**: Rotate webhook secrets and encrypt access tokens in the database.
+5.  **Monitoring**: Add Prometheus/Grafana for tracking NATS lag and worker throughput.
+
+## 10. Testing
 The project includes comprehensive unit and integration tests.
 ```bash
 cd apps/backend
